@@ -1,0 +1,21 @@
+# Warehouse Inventory Counter Requirements
+
+# Web Framework
+streamlit>=1.32.0
+
+# Computer Vision & Object Detection
+ultralytics>=8.1.0  # YOLOv8
+opencv-python>=4.9.0
+pillow>=10.2.0
+
+# OCR
+easyocr>=1.7.0
+torch>=2.2.0
+torchvision>=0.17.0
+
+# Data Processing
+numpy>=1.26.0
+pandas>=2.2.0
+
+# Optional: For better performance
+# onnxruntime>=1.17.0  # For ONNX model inference
