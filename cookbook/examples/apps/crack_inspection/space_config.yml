@@ -1,0 +1,27 @@
+title: Concrete Crack Width Measurement
+emoji: 🏗️
+colorFrom: gray
+colorTo: blue
+sdk: gradio
+sdk_version: "4.44.0"
+app_file: app.py
+pinned: false
+license: mit
+tags:
+  - computer-vision
+  - construction
+  - inspection
+  - crack-detection
+  - civil-engineering
+  - agno
+  - concrete-analysis
+short_description: AI-powered crack detection and measurement for construction inspection
+
+# HuggingFace Space Configuration
+# To deploy:
+# 1. Create new Space on HuggingFace
+# 2. Upload all files from this directory
+# 3. Set environment variables in Space settings:
+#    - ANTHROPIC_API_KEY
+#    - OPENAI_API_KEY (optional)
+# 4. Space will auto-launch on push
