@@ -1,0 +1,61 @@
+# Development Dockerfile with debugging support
+FROM python:3.11-slim as development
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for development
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgl1-mesa-glx \
+    ffmpeg \
+    curl \
+    vim \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    DEBUG=true
+
+# Install Python debugging tools
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir debugpy ipython ipdb
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install development dependencies
+RUN pip install --no-cache-dir \
+    pytest-watch \
+    black \
+    isort \
+    flake8 \
+    mypy \
+    bandit
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser
+
+# Create necessary directories
+RUN mkdir -p /app/data/videos /app/data/images /app/data/models /app/logs && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose ports
+EXPOSE 8000 5678
+
+# Default command (can be overridden)
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--log-level", "debug"]

@@ -1,0 +1,282 @@
+# ============================================================================
+# PPE Detection System - Staging Environment Configuration
+# ============================================================================
+# Staging ortamı yapılandırması
+# Production benzeri ortamda test için
+# Production öncesi son kontroller
+# ============================================================================
+
+# Genel Ayarlar
+app_name: "PPE Detection System (Staging)"
+app_version: "1.0.0-rc"
+environment: "staging"
+debug: false  # Production'a hazırlık
+
+# ============================================================================
+# Database Configuration
+# ============================================================================
+database:
+  # PostgreSQL kullan (production'a hazırlık)
+  type: "postgresql"
+  host: "staging-db.internal"
+  port: 5432
+  username: "ppe_staging"
+  # Şifre environment variable'dan okunmalı
+  # password: ${DATABASE_PASSWORD}
+  database: "ppe_staging"
+
+  # Pool ayarları (production benzeri)
+  pool_size: 10
+  max_overflow: 15
+  pool_timeout: 30
+  pool_recycle: 3600
+
+  # SQL echo (kapalı)
+  echo: false
+
+# ============================================================================
+# Camera Configuration
+# ============================================================================
+cameras:
+  # Global kamera ayarları
+  default_fps: 10
+  default_resolution: [1920, 1080]
+  frame_skip: 1
+
+  # Staging test kameraları
+  cameras:
+    # Test kamera 1
+    - camera_id: "staging_cam_01"
+      name: "Staging Test Camera 1"
+      rtsp_url: "rtsp://staging-cam-01.internal:554/stream1"
+      location: "Staging Site - Main Gate"
+      zone: "Zone A"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+    # Test kamera 2
+    - camera_id: "staging_cam_02"
+      name: "Staging Test Camera 2"
+      rtsp_url: "rtsp://staging-cam-02.internal:554/stream1"
+      location: "Staging Site - Work Area"
+      zone: "Zone B"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+# ============================================================================
+# Model Configuration
+# ============================================================================
+model:
+  # Production benzeri model
+  model_path: "models/ppe_yolov11m_v1.0.pt"
+  model_type: "yolov11"
+  model_size: "m"  # Medium model
+
+  # Inference ayarları
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+
+  # Device (GPU varsa kullan)
+  device: "cuda"
+  device_id: 0
+  batch_size: 1
+  half_precision: true  # FP16 performance
+
+  # PPE sınıfları
+  ppe_classes:
+    hardhat: 0
+    mask: 1
+    safety_vest: 2
+    person: 3
+    no_hardhat: 4
+    no_mask: 5
+    no_safety_vest: 6
+
+  # Zorunlu PPE
+  required_ppe:
+    - "hardhat"
+    - "safety_vest"
+
+  # Model warmup
+  warmup_iterations: 10
+
+# ============================================================================
+# Alert Configuration
+# ============================================================================
+alerts:
+  # Alert sistemi (tüm kanallar test edilmeli)
+  enable_alerts: true
+  min_alert_interval: 60
+
+  # Alert kanalları (test için hepsi açık)
+  enable_email: true
+  enable_sms: false  # Maliyet nedeniyle kapalı
+  enable_webhook: true
+  enable_database: true
+
+  # Email ayarları (test alıcıları)
+  email_recipients:
+    - "staging-team@company.com"
+    - "qa-team@company.com"
+  email_cc:
+    - "tech-lead@company.com"
+
+  # SMS ayarları (gerekirse)
+  sms_recipients: []
+
+  # Webhook ayarları
+  webhook_urls:
+    - "https://hooks.staging.company.com/ppe-alerts"
+  webhook_timeout: 10
+
+  # Kritik ihlaller
+  critical_violations:
+    - "no_hardhat"
+    - "no_safety_vest"
+
+  # Alert birleştirme
+  aggregate_alerts: true
+  aggregation_window: 300  # 5 dakika
+
+  # Sessiz saatler (test için kapalı)
+  quiet_hours_enabled: false
+  quiet_hours_start: "22:00"
+  quiet_hours_end: "07:00"
+
+# ============================================================================
+# API Configuration
+# ============================================================================
+api:
+  # Email servisi (staging SMTP)
+  smtp_host: "smtp.staging.company.com"
+  smtp_port: 587
+  smtp_username: "ppe-staging@company.com"
+  # smtp_password: ${SMTP_PASSWORD}
+  smtp_use_tls: true
+  email_from: "ppe-staging@company.com"
+
+  # SMS servisi (Twilio test account)
+  # twilio_account_sid: ${TWILIO_ACCOUNT_SID}
+  # twilio_auth_token: ${TWILIO_AUTH_TOKEN}
+  twilio_phone_number: ""
+
+  # Cloud storage (staging bucket)
+  s3_enabled: true
+  s3_bucket: "ppe-detection-staging"
+  s3_region: "us-east-1"
+  # s3_access_key: ${AWS_ACCESS_KEY}
+  # s3_secret_key: ${AWS_SECRET_KEY}
+
+  # Webhook authentication
+  webhook_auth_enabled: true
+  # webhook_auth_token: ${WEBHOOK_AUTH_TOKEN}
+
+  # Rate limiting
+  rate_limit_enabled: true
+  rate_limit_per_minute: 120
+
+# ============================================================================
+# Monitoring Configuration
+# ============================================================================
+monitoring:
+  # Logging ayarları
+  log_level: "INFO"
+  log_file: "logs/staging_ppe_detection.log"
+  log_max_size: 10485760  # 10 MB
+  log_backup_count: 5
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+
+  # Metrics (Prometheus)
+  enable_metrics: true
+  metrics_port: 9090
+
+  # Performance tracking
+  track_inference_time: true
+  track_fps: true
+  track_memory: true
+
+  # Health checks
+  health_check_enabled: true
+  health_check_port: 8080
+  health_check_interval: 30
+
+  # System alerts
+  alert_on_camera_failure: true
+  alert_on_high_memory: true
+  memory_threshold_percent: 90
+
+  # Snapshots
+  save_violation_snapshots: true
+  snapshot_path: "data/staging_snapshots"
+  snapshot_retention_days: 30
+
+# ============================================================================
+# Feature Flags
+# ============================================================================
+feature_flags:
+  enable_person_tracking: true
+  enable_zone_detection: true
+  enable_heat_map: true  # Test için açık
+  enable_analytics_dashboard: true
+  enable_auto_calibration: false  # Henüz kararlı değil
+  enable_night_mode: true  # Test edilmeli
+
+# ============================================================================
+# İş Mantığı
+# ============================================================================
+violation_grace_period: 5
+
+# Person tracking
+person_tracking_enabled: true
+person_tracking_max_age: 30
+
+# Zone management
+zones_enabled: true
+
+# ============================================================================
+# Staging Specific Settings
+# ============================================================================
+
+# Performance testing
+enable_performance_monitoring: true
+enable_load_testing: false
+
+# A/B testing
+enable_ab_testing: true
+
+# Feature toggles (dinamik olarak değiştirilebilir)
+feature_toggles:
+  new_detection_algorithm: false
+  improved_tracking: true
+  experimental_alerts: false
+
+# Backup ayarları
+backup:
+  enabled: true
+  interval_hours: 6
+  retention_days: 14
+
+# SSL/TLS ayarları
+ssl:
+  enabled: true
+  verify_certificates: true
+
+# Authentication
+auth:
+  enabled: true
+  jwt_expiry_hours: 24
+
+# CORS ayarları (API için)
+cors:
+  enabled: true
+  allowed_origins:
+    - "https://staging.company.com"
+    - "https://staging-admin.company.com"

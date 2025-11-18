@@ -1,0 +1,209 @@
+# Example camera configuration for Turkish construction site
+# Copy this file to camera_config.yaml and update with your actual camera details
+
+# Site Information
+site:
+  name: "İstanbul Şantiyesi"
+  location: "İstanbul, Türkiye"
+  timezone: "Europe/Istanbul"
+
+# Global camera settings (can be overridden per camera)
+defaults:
+  capture_interval: 5.0  # seconds between frame captures
+  reconnect_interval: 5.0  # seconds between reconnection attempts
+  max_reconnect_attempts: 3  # max consecutive reconnection attempts
+  connection_timeout: 10.0  # seconds to wait for connection
+  read_timeout: 5.0  # seconds to wait for frame read
+  buffer_size: 1  # number of frames to buffer
+  fps: 30  # target FPS
+  enabled: true  # enable camera by default
+
+# Camera definitions
+cameras:
+  # Main entrance camera
+  - camera_id: "cam_giris_001"
+    name: "Ana Giriş Kapısı"
+    zone: "Giriş Kontrol"
+    location: "Şantiye Ana Girişi"
+    description: "Ana giriş kapısı kamerası - PPE kontrolü"
+
+    # Connection details
+    camera_type: "hikvision"  # hikvision, dahua, axis, onvif, generic
+    ip: "192.168.1.100"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+    # Optional overrides
+    capture_interval: 3.0  # More frequent captures at entrance
+    enabled: true
+
+  # Construction area camera 1
+  - camera_id: "cam_insaat_001"
+    name: "İnşaat Alanı A Blok"
+    zone: "İnşaat Bölgesi A"
+    location: "A Blok İnşaat Alanı"
+    description: "A blok inşaat alanı kamerası"
+
+    camera_type: "hikvision"
+    ip: "192.168.1.101"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+  # Construction area camera 2
+  - camera_id: "cam_insaat_002"
+    name: "İnşaat Alanı B Blok"
+    zone: "İnşaat Bölgesi B"
+    location: "B Blok İnşaat Alanı"
+    description: "B blok inşaat alanı kamerası"
+
+    camera_type: "dahua"
+    ip: "192.168.1.102"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+  # Crane area camera
+  - camera_id: "cam_vinc_001"
+    name: "Vinç Alanı"
+    zone: "Vinç Operasyon"
+    location: "Kule Vinç 1"
+    description: "Kule vinç operasyon alanı kamerası"
+
+    camera_type: "hikvision"
+    ip: "192.168.1.103"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+  # Material storage camera
+  - camera_id: "cam_depo_001"
+    name: "Malzeme Deposu"
+    zone: "Depo Bölgesi"
+    location: "Ana Malzeme Deposu"
+    description: "Malzeme deposu giriş kamerası"
+
+    camera_type: "hikvision"
+    ip: "192.168.1.104"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+  # Equipment area camera
+  - camera_id: "cam_ekipman_001"
+    name: "Ekipman Alanı"
+    zone: "Ekipman Bölgesi"
+    location: "İş Makinaları Alanı"
+    description: "İş makinaları ve ekipman alanı kamerası"
+
+    camera_type: "hikvision"
+    ip: "192.168.1.105"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+
+  # Worker rest area camera
+  - camera_id: "cam_dinlenme_001"
+    name: "İşçi Dinlenme Alanı"
+    zone: "Sosyal Tesis"
+    location: "İşçi Dinlenme Alanı"
+    description: "İşçi dinlenme ve yemek alanı kamerası"
+
+    camera_type: "dahua"
+    ip: "192.168.1.106"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+    channel: 1
+    enabled: false  # Disabled by default for privacy
+
+  # Parking area camera
+  - camera_id: "cam_otopark_001"
+    name: "Araç Parkı"
+    zone: "Park Alanı"
+    location: "Personel ve Araç Parkı"
+    description: "Personel ve araç park alanı kamerası"
+
+    camera_type: "onvif"
+    ip: "192.168.1.107"
+    port: 554
+    username: "admin"
+    password: "your_password_here"
+
+# Zone definitions (for organizing cameras)
+zones:
+  - zone_id: "giris_kontrol"
+    name: "Giriş Kontrol"
+    description: "Şantiye giriş ve çıkış kontrol alanı"
+    priority: "high"
+
+  - zone_id: "insaat_bolgesi_a"
+    name: "İnşaat Bölgesi A"
+    description: "A blok inşaat çalışma alanı"
+    priority: "high"
+
+  - zone_id: "insaat_bolgesi_b"
+    name: "İnşaat Bölgesi B"
+    description: "B blok inşaat çalışma alanı"
+    priority: "high"
+
+  - zone_id: "vinc_operasyon"
+    name: "Vinç Operasyon"
+    description: "Vinç çalışma alanları"
+    priority: "high"
+
+  - zone_id: "depo_bolgesi"
+    name: "Depo Bölgesi"
+    description: "Malzeme ve ekipman deposu"
+    priority: "medium"
+
+  - zone_id: "ekipman_bolgesi"
+    name: "Ekipman Bölgesi"
+    description: "İş makinaları ve ekipman alanı"
+    priority: "medium"
+
+  - zone_id: "sosyal_tesis"
+    name: "Sosyal Tesis"
+    description: "İşçi sosyal tesisleri"
+    priority: "low"
+
+  - zone_id: "park_alani"
+    name: "Park Alanı"
+    description: "Araç ve personel park alanı"
+    priority: "low"
+
+# Monitoring settings
+monitoring:
+  health_check_interval: 10.0  # seconds between health checks
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  save_snapshots: true
+  snapshot_directory: "/var/ppe_detection/snapshots"
+  retention_days: 7  # days to keep snapshots
+
+# Alert settings (for future integration)
+alerts:
+  enabled: true
+  email_notifications: false
+  sms_notifications: false
+  webhook_url: null
+
+# PPE Detection settings (for integration with detection module)
+ppe_detection:
+  enabled: true
+  detection_interval: 5.0  # seconds
+  confidence_threshold: 0.5
+  required_ppe:
+    - "hard_hat"
+    - "safety_vest"
+  zones_requiring_ppe:
+    - "İnşaat Bölgesi A"
+    - "İnşaat Bölgesi B"
+    - "Vinç Operasyon"
+    - "Ekipman Bölgesi"

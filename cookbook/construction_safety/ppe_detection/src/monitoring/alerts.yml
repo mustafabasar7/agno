@@ -1,0 +1,208 @@
+# Prometheus Alert Rules for PPE Detection System
+
+groups:
+  - name: ppe_detection_alerts
+    interval: 30s
+    rules:
+      # High violation rate alert
+      - alert: HighViolationRate
+        expr: avg(ppe_violation_rate) > 25
+        for: 5m
+        labels:
+          severity: warning
+          component: detection
+        annotations:
+          summary: "High PPE violation rate detected"
+          description: "PPE violation rate is {{ $value | humanize }} violations/hour (threshold: 25)"
+
+      # Critical violation rate alert
+      - alert: CriticalViolationRate
+        expr: avg(ppe_violation_rate) > 50
+        for: 5m
+        labels:
+          severity: critical
+          component: detection
+        annotations:
+          summary: "Critical PPE violation rate"
+          description: "PPE violation rate is {{ $value | humanize }} violations/hour (threshold: 50)"
+
+      # Camera offline alert
+      - alert: CameraOffline
+        expr: ppe_camera_status == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: camera
+        annotations:
+          summary: "Camera {{ $labels.camera_id }} is offline"
+          description: "Camera {{ $labels.camera_id }} has been offline for more than 5 minutes"
+
+      # Low camera FPS alert
+      - alert: LowCameraFPS
+        expr: ppe_camera_fps < 10
+        for: 5m
+        labels:
+          severity: warning
+          component: camera
+        annotations:
+          summary: "Low FPS on camera {{ $labels.camera_id }}"
+          description: "Camera {{ $labels.camera_id }} FPS is {{ $value | humanize }} (threshold: 10)"
+
+      # High API response time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, sum(rate(ppe_api_response_time_seconds_bucket[5m])) by (endpoint, le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time for {{ $labels.endpoint }}"
+          description: "P95 response time for {{ $labels.endpoint }} is {{ $value | humanize }}s (threshold: 1s)"
+
+      # High model inference time
+      - alert: HighInferenceTime
+        expr: histogram_quantile(0.95, sum(rate(ppe_model_inference_time_seconds_bucket[5m])) by (model_name, le)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: model
+        annotations:
+          summary: "High model inference time"
+          description: "P95 inference time for {{ $labels.model_name }} is {{ $value | humanize }}s (threshold: 0.5s)"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: ppe_cpu_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanize }}% (threshold: 80%)"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: ppe_cpu_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value | humanize }}% (threshold: 95%)"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: ppe_memory_usage_percent > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanize }}% (threshold: 85%)"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: ppe_memory_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value | humanize }}% (threshold: 95%)"
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: ppe_disk_usage_percent > 80
+        for: 30m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High disk usage on {{ $labels.mount_point }}"
+          description: "Disk usage on {{ $labels.mount_point }} is {{ $value | humanize }}% (threshold: 80%)"
+
+      # Critical disk usage
+      - alert: CriticalDiskUsage
+        expr: ppe_disk_usage_percent > 90
+        for: 10m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical disk usage on {{ $labels.mount_point }}"
+          description: "Disk usage on {{ $labels.mount_point }} is {{ $value | humanize }}% (threshold: 90%)"
+
+      # High GPU memory usage (if GPU is available)
+      - alert: HighGPUMemoryUsage
+        expr: ppe_gpu_memory_usage_percent > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "High GPU memory usage on GPU {{ $labels.gpu_id }}"
+          description: "GPU {{ $labels.gpu_id }} memory usage is {{ $value | humanize }}% (threshold: 90%)"
+
+      # No detections for extended period
+      - alert: NoDetections
+        expr: rate(ppe_detections_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          component: detection
+        annotations:
+          summary: "No detections for 30 minutes"
+          description: "No object detections have been recorded for 30 minutes. Check if cameras are working."
+
+      # High API error rate
+      - alert: HighAPIErrorRate
+        expr: sum(rate(ppe_api_requests_total{status=~"5.."}[5m])) / sum(rate(ppe_api_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="ppe-detection"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "PPE Detection service is down"
+          description: "The PPE Detection service {{ $labels.instance }} has been down for more than 1 minute"
+
+  - name: ppe_recording_rules
+    interval: 30s
+    rules:
+      # Pre-calculate violation rate per camera
+      - record: camera:violation_rate:1h
+        expr: sum(rate(ppe_violations_total[1h])) by (camera_id) * 3600
+
+      # Pre-calculate detection rate per camera
+      - record: camera:detection_rate:1h
+        expr: sum(rate(ppe_detections_total[1h])) by (camera_id) * 3600
+
+      # Overall system violation percentage
+      - record: system:violation_percentage:1h
+        expr: |
+          sum(rate(ppe_violations_total[1h])) /
+          sum(rate(ppe_detections_total[1h])) * 100
+
+      # API request rate by endpoint
+      - record: api:request_rate:5m
+        expr: sum(rate(ppe_api_requests_total[5m])) by (endpoint, method)
+
+      # API success rate
+      - record: api:success_rate:5m
+        expr: |
+          sum(rate(ppe_api_requests_total{status=~"2.."}[5m])) /
+          sum(rate(ppe_api_requests_total[5m]))

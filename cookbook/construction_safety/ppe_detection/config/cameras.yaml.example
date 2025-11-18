@@ -1,0 +1,194 @@
+# ============================================================================
+# PPE Detection System - Camera Configuration
+# ============================================================================
+# Kamera yapılandırması
+# Bu dosya kameraları merkezi olarak yönetmek için kullanılır
+#
+# Kullanım:
+#   1. Bu dosyayı cameras.yaml olarak kopyalayın
+#   2. Gerçek kamera bilgilerinizi girin
+#   3. RTSP URL'lerinde kullanıcı adı/şifre varsa dikkatli olun
+#   4. Bu dosyayı GIT'e COMMIT ETMEYİN (.gitignore'a ekleyin)
+# ============================================================================
+
+cameras:
+  # Global kamera ayarları (varsayılan değerler)
+  default_fps: 10
+  default_resolution: [1920, 1080]
+  frame_skip: 1
+
+  # Kamera listesi
+  cameras:
+    # ========================================================================
+    # Kamera 1 - Ana Giriş
+    # ========================================================================
+    - camera_id: "cam_main_entrance"
+      name: "Ana Giriş Kamerası"
+
+      # RTSP stream URL
+      # Format örnekleri:
+      #   - rtsp://username:password@192.168.1.100:554/stream1
+      #   - rtsp://192.168.1.100:554/stream1
+      #   - http://192.168.1.100:8080/video
+      #   - file:///path/to/video.mp4  (test için)
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.100:554/stream1"
+
+      # Kamera lokasyonu ve bölgesi
+      location: "Şantiye Ana Girişi"
+      zone: "Bölge A - Giriş Kontrol"
+
+      # Stream ayarları
+      fps: 10
+      resolution: [1920, 1080]
+
+      # Bağlantı ayarları
+      reconnect_delay: 5  # Bağlantı koptuğunda kaç saniye sonra tekrar dene
+      max_reconnect_attempts: 10  # Maksimum yeniden bağlanma denemesi
+      buffer_size: 100  # Frame buffer boyutu
+
+      # Kamera aktif mi?
+      enabled: true
+
+    # ========================================================================
+    # Kamera 2 - Çalışma Alanı Kuzey
+    # ========================================================================
+    - camera_id: "cam_work_area_north"
+      name: "Çalışma Alanı Kuzey Kamerası"
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.101:554/stream1"
+      location: "Çalışma Alanı - Kuzey Sektör"
+      zone: "Bölge B - Aktif Çalışma Alanı"
+      fps: 10
+      resolution: [1920, 1080]
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+      enabled: true
+
+    # ========================================================================
+    # Kamera 3 - Çalışma Alanı Güney
+    # ========================================================================
+    - camera_id: "cam_work_area_south"
+      name: "Çalışma Alanı Güney Kamerası"
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.102:554/stream1"
+      location: "Çalışma Alanı - Güney Sektör"
+      zone: "Bölge C - Aktif Çalışma Alanı"
+      fps: 10
+      resolution: [1920, 1080]
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+      enabled: true
+
+    # ========================================================================
+    # Kamera 4 - Yüksekte Çalışma Alanı
+    # ========================================================================
+    - camera_id: "cam_elevated_work"
+      name: "Yüksekte Çalışma Kamerası"
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.103:554/stream1"
+      location: "Yüksekte Çalışma Alanı"
+      zone: "Bölge D - Yüksek Riskli Alan"
+      fps: 10
+      resolution: [1920, 1080]
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+      enabled: true
+
+    # ========================================================================
+    # Kamera 5 - Makine Parkı
+    # ========================================================================
+    - camera_id: "cam_equipment_yard"
+      name: "Makine Parkı Kamerası"
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.104:554/stream1"
+      location: "Makine ve Ekipman Parkı"
+      zone: "Bölge E - Ekipman Alanı"
+      fps: 8  # Daha düşük FPS (statik alan)
+      resolution: [1280, 720]  # Daha düşük çözünürlük
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 50
+      enabled: true
+
+    # ========================================================================
+    # Kamera 6 - Depo Alanı
+    # ========================================================================
+    - camera_id: "cam_storage_area"
+      name: "Depo Alanı Kamerası"
+      rtsp_url: "rtsp://admin:Admin123@192.168.1.105:554/stream1"
+      location: "Malzeme Depo Alanı"
+      zone: "Bölge F - Depo"
+      fps: 5  # En düşük FPS
+      resolution: [1280, 720]
+      reconnect_delay: 5
+      max_reconnect_attempts: 5
+      buffer_size: 30
+      enabled: false  # İhtiyaç olduğunda aktifleştir
+
+    # ========================================================================
+    # Test Kamerası - Video Dosyası
+    # ========================================================================
+    - camera_id: "test_camera_video"
+      name: "Test Video Kamerası"
+      rtsp_url: "file://data/test_videos/sample_construction.mp4"
+      location: "Test Location"
+      zone: "Test Zone"
+      fps: 10
+      resolution: [1920, 1080]
+      reconnect_delay: 3
+      max_reconnect_attempts: 3
+      buffer_size: 50
+      enabled: false  # Test için manuel olarak aktifleştir
+
+    # ========================================================================
+    # Test Kamerası - Webcam
+    # ========================================================================
+    - camera_id: "test_webcam"
+      name: "Test Webcam"
+      rtsp_url: "0"  # Varsayılan webcam (0, 1, 2, ...)
+      location: "Local Machine"
+      zone: "Test Zone"
+      fps: 5
+      resolution: [640, 480]
+      reconnect_delay: 3
+      max_reconnect_attempts: 3
+      buffer_size: 30
+      enabled: false  # Test için manuel olarak aktifleştir
+
+
+# ============================================================================
+# KAMERA YAPILANDIRMA NOTLARI
+# ============================================================================
+#
+# 1. RTSP URL Formatları:
+#    - Hikvision: rtsp://admin:password@IP:554/Streaming/Channels/101
+#    - Dahua: rtsp://admin:password@IP:554/cam/realmonitor?channel=1&subtype=0
+#    - Axis: rtsp://root:password@IP/axis-media/media.amp
+#    - Generic: rtsp://username:password@IP:554/stream1
+#
+# 2. Çözünürlük ve FPS Önerileri:
+#    - Yüksek riskli alanlar: 1920x1080, 10-15 FPS
+#    - Normal alanlar: 1280x720, 8-10 FPS
+#    - Düşük riskli alanlar: 1280x720, 5 FPS
+#
+# 3. Güvenlik:
+#    - Güçlü şifreler kullanın
+#    - IP whitelist kullanın
+#    - Kamera firmware'ini güncel tutun
+#    - Network segmentasyonu yapın
+#
+# 4. Performans:
+#    - Çok fazla kamera = yüksek CPU/GPU kullanımı
+#    - frame_skip parametresini artırarak yükü azaltabilirsiniz
+#    - Gerekli olmayan kameraları devre dışı bırakın
+#
+# 5. Network:
+#    - Stable network bağlantısı gereklidir
+#    - Minimum 2 Mbps bandwidth per camera
+#    - Düşük latency önemlidir (<100ms)
+#
+# 6. Bakım:
+#    - Kameraları düzenli olarak test edin
+#    - Lens temizliği yapın
+#    - Bağlantı loglarını kontrol edin
+#
+# ============================================================================

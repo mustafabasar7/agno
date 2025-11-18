@@ -1,0 +1,199 @@
+version: '3.8'
+
+# Development environment with hot reload and debugging support
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL Database - Development Configuration
+  db:
+    ports:
+      - "5432:5432"  # Expose for local development tools
+    environment:
+      POSTGRES_DB: ppe_detection_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - ./scripts/init-db-dev.sql:/docker-entrypoint-initdb.d/init-dev.sql:ro
+
+  # Redis - Development Configuration
+  redis:
+    ports:
+      - "6379:6379"  # Expose for local development tools
+    command: redis-server --appendonly yes  # No password for dev
+
+  # FastAPI Application - Development Configuration
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+    environment:
+      # Database
+      DATABASE_URL: postgresql://dev_user:dev_password@db:5432/ppe_detection_dev
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Application
+      APP_ENV: development
+      DEBUG: "true"
+      LOG_LEVEL: debug
+      RELOAD: "true"
+
+      # Detection Settings (lower thresholds for testing)
+      DETECTION_CONFIDENCE_THRESHOLD: 0.3
+      DETECTION_IOU_THRESHOLD: 0.4
+
+      # Camera Settings
+      CAMERA_URLS: ${CAMERA_URLS:-rtsp://demo:demo@camera1:554/stream}
+      CAMERA_RECONNECT_DELAY: 3
+      FRAME_PROCESSING_INTERVAL: 2
+
+      # Development - Disable security for easier testing
+      SECRET_KEY: dev_secret_key_change_in_production
+      API_KEY: dev_api_key
+
+      # Agno
+      AGNO_API_KEY: ${AGNO_API_KEY}
+      AGNO_MODEL: ${AGNO_MODEL:-gpt-4o-mini}
+
+      # Python debugging
+      PYTHONPATH: /app
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src:rw
+      - ./config:/app/config:rw
+      - ./tests:/app/tests:rw
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      # Don't mount __pycache__ and other Python artifacts
+      - /app/src/**/__pycache__
+    ports:
+      - "8000:8000"  # Main application
+      - "5678:5678"  # Python debugger (debugpy)
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+
+  # Celery Worker - Development Configuration
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    command: >
+      celery -A src.tasks.celery_app worker
+      --loglevel=debug
+      --concurrency=1
+      -E
+    environment:
+      # Database
+      DATABASE_URL: postgresql://dev_user:dev_password@db:5432/ppe_detection_dev
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+
+      # Application
+      APP_ENV: development
+      DEBUG: "true"
+      LOG_LEVEL: debug
+
+      # Agno
+      AGNO_API_KEY: ${AGNO_API_KEY}
+      AGNO_MODEL: ${AGNO_MODEL:-gpt-4o-mini}
+
+      # Python
+      PYTHONPATH: /app
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ./src:/app/src:rw
+      - ./config:/app/config:rw
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+    stdin_open: true
+    tty: true
+
+  # Celery Flower - Task Monitoring (Dev only)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: ppe_detection_flower
+    command: celery -A src.tasks.celery_app flower --port=5555
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-admin}
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - ppe_network
+    profiles:
+      - dev-tools
+
+  # PGAdmin - Database Management (Dev only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ppe_detection_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ppe.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - "5050:5050"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - ppe_network
+    profiles:
+      - dev-tools
+
+  # Redis Commander - Redis Management (Dev only)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ppe_detection_redis_commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - ppe_network
+    profiles:
+      - dev-tools
+
+  # Mailhog - Email Testing (Dev only)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ppe_detection_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - ppe_network
+    profiles:
+      - dev-tools
+
+volumes:
+  pgadmin_data:
+    driver: local

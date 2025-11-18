@@ -1,0 +1,261 @@
+# ============================================================================
+# PPE Detection System - Development Environment Configuration
+# ============================================================================
+# Geliştirme ortamı yapılandırması
+# Yerel geliştirme ve test için optimize edilmiştir
+# ============================================================================
+
+# Genel Ayarlar
+app_name: "PPE Detection System (Development)"
+app_version: "1.0.0-dev"
+environment: "development"
+debug: true
+
+# ============================================================================
+# Database Configuration
+# ============================================================================
+database:
+  # SQLite kullan (kolay kurulum için)
+  type: "sqlite"
+  sqlite_path: "data/dev_ppe_detection.db"
+
+  # Pool ayarları (SQLite için kullanılmaz ama tanımlı olsun)
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+
+  # SQL sorgularını logla (debug için)
+  echo: true
+
+# PostgreSQL kullanmak istersen:
+# database:
+#   type: "postgresql"
+#   host: "localhost"
+#   port: 5432
+#   username: "ppe_dev"
+#   password: "dev_password_123"
+#   database: "ppe_dev"
+#   pool_size: 5
+#   echo: true
+
+# ============================================================================
+# Camera Configuration
+# ============================================================================
+cameras:
+  # Global kamera ayarları
+  default_fps: 5  # Development'ta düşük FPS (CPU tasarrufu)
+  default_resolution: [1280, 720]  # Düşük çözünürlük
+  frame_skip: 2  # Her 2 frame'de bir işle
+
+  # Test kameraları
+  cameras:
+    # Test kamera 1 - Örnek video dosyası
+    - camera_id: "dev_cam_01"
+      name: "Test Camera 1"
+      rtsp_url: "file://data/test_videos/construction_site_1.mp4"
+      location: "Test Site 1"
+      zone: "Main Entrance"
+      fps: 5
+      resolution: [1280, 720]
+      enabled: true
+      reconnect_delay: 3
+      max_reconnect_attempts: 5
+
+    # Test kamera 2 - Webcam (varsa)
+    - camera_id: "dev_cam_02"
+      name: "Local Webcam"
+      rtsp_url: "0"  # Default webcam
+      location: "Developer Desk"
+      zone: "Test Zone"
+      fps: 5
+      resolution: [640, 480]
+      enabled: false  # Manuel olarak aktifleştir
+      reconnect_delay: 3
+      max_reconnect_attempts: 3
+
+# ============================================================================
+# Model Configuration
+# ============================================================================
+model:
+  # Model dosyası
+  model_path: "models/ppe_yolov11m.pt"
+  model_type: "yolov11"
+  model_size: "n"  # Nano model (hızlı inference)
+
+  # Inference ayarları
+  confidence_threshold: 0.4  # Düşük threshold (daha fazla detection)
+  iou_threshold: 0.45
+
+  # Device
+  device: "cpu"  # Development'ta CPU kullan
+  device_id: 0
+  batch_size: 1
+  half_precision: false
+
+  # PPE sınıfları
+  ppe_classes:
+    hardhat: 0
+    mask: 1
+    safety_vest: 2
+    person: 3
+    no_hardhat: 4
+    no_mask: 5
+    no_safety_vest: 6
+
+  # Zorunlu PPE
+  required_ppe:
+    - "hardhat"
+    - "safety_vest"
+
+  # Model warmup
+  warmup_iterations: 3  # Kısa warmup
+
+# ============================================================================
+# Alert Configuration
+# ============================================================================
+alerts:
+  # Alert sistemi (development'ta seçici kullan)
+  enable_alerts: true
+  min_alert_interval: 30  # Daha sık alert (test için)
+
+  # Alert kanalları
+  enable_email: false  # Email kapalı (spam önleme)
+  enable_sms: false  # SMS kapalı
+  enable_webhook: false  # Webhook kapalı
+  enable_database: true  # Sadece veritabanına kaydet
+
+  # Email ayarları (gerekirse aktifleştir)
+  email_recipients: ["developer@localhost"]
+  email_cc: []
+
+  # SMS ayarları
+  sms_recipients: []
+
+  # Webhook ayarları
+  webhook_urls: []
+  webhook_timeout: 5
+
+  # Kritik ihlaller
+  critical_violations:
+    - "no_hardhat"
+    - "no_safety_vest"
+
+  # Alert birleştirme
+  aggregate_alerts: true
+  aggregation_window: 60  # 1 dakika
+
+  # Sessiz saatler (kapalı)
+  quiet_hours_enabled: false
+  quiet_hours_start: "00:00"
+  quiet_hours_end: "00:00"
+
+# ============================================================================
+# API Configuration
+# ============================================================================
+api:
+  # Email servisi (geliştirme için MailHog kullanabilirsin)
+  smtp_host: "localhost"
+  smtp_port: 1025  # MailHog port
+  smtp_username: ""
+  smtp_password: ""
+  smtp_use_tls: false
+  email_from: "dev@ppe-detection.local"
+
+  # SMS servisi (kapalı)
+  twilio_account_sid: ""
+  twilio_auth_token: ""
+  twilio_phone_number: ""
+
+  # Cloud storage (kapalı)
+  s3_enabled: false
+  s3_bucket: ""
+  s3_region: "us-east-1"
+  s3_access_key: ""
+  s3_secret_key: ""
+
+  # Webhook authentication (kapalı)
+  webhook_auth_enabled: false
+  webhook_auth_token: ""
+
+  # Rate limiting (gevşek)
+  rate_limit_enabled: false
+  rate_limit_per_minute: 1000
+
+# ============================================================================
+# Monitoring Configuration
+# ============================================================================
+monitoring:
+  # Logging ayarları
+  log_level: "DEBUG"  # Detaylı loglar
+  log_file: "logs/dev_ppe_detection.log"
+  log_max_size: 5242880  # 5 MB
+  log_backup_count: 3
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  # Metrics
+  enable_metrics: true
+  metrics_port: 9090
+
+  # Performance tracking
+  track_inference_time: true
+  track_fps: true
+  track_memory: true
+
+  # Health checks
+  health_check_enabled: true
+  health_check_port: 8080
+  health_check_interval: 60  # 1 dakika
+
+  # System alerts
+  alert_on_camera_failure: false  # Geliştirmede kapalı
+  alert_on_high_memory: false
+  memory_threshold_percent: 95
+
+  # Snapshots
+  save_violation_snapshots: true
+  snapshot_path: "data/dev_snapshots"
+  snapshot_retention_days: 7  # Kısa süre
+
+# ============================================================================
+# Feature Flags
+# ============================================================================
+feature_flags:
+  enable_person_tracking: true
+  enable_zone_detection: false  # Test için kapalı
+  enable_heat_map: false
+  enable_analytics_dashboard: true
+  enable_auto_calibration: false
+  enable_night_mode: false
+
+# ============================================================================
+# İş Mantığı
+# ============================================================================
+violation_grace_period: 3  # Kısa bekleme
+
+# Person tracking
+person_tracking_enabled: true
+person_tracking_max_age: 20
+
+# Zone management
+zones_enabled: false
+
+# ============================================================================
+# Development Specific Settings
+# ============================================================================
+# Bu ayarlar sadece development ortamı için
+
+# Hot reload
+hot_reload: true
+
+# Mock data
+use_mock_data: false
+
+# Performance profiling
+enable_profiling: true
+
+# Test mode
+test_mode: false
+
+# Auto-restart on crash
+auto_restart: false

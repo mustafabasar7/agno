@@ -1,0 +1,31 @@
+# Core monitoring dependencies
+prometheus-client>=0.19.0  # Prometheus metrics client
+psutil>=5.9.0              # System and process utilities
+
+# Optional dependencies for extended functionality
+
+# GPU monitoring
+# GPUtil>=1.4.0
+
+# Elasticsearch integration
+# elasticsearch>=8.0.0
+
+# AWS CloudWatch integration
+# boto3>=1.28.0
+
+# Async support (usually included with Python 3.7+)
+# No additional packages needed for basic async support
+
+# For advanced logging features
+# python-json-logger>=2.0.0  # Alternative JSON formatter
+
+# For email alerts
+# smtplib is part of Python standard library
+
+# For Slack alerts (webhook-based, no additional dependencies needed)
+# requests>=2.31.0  # If you want to use requests instead of urllib
+
+# Development and testing
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.1.0

@@ -1,0 +1,413 @@
+# ============================================================================
+# PPE Detection System - Production Environment Configuration
+# ============================================================================
+# Production ortamı yapılandırması
+# UYARI: Bu dosya canlı sistemde kullanılacaktır!
+# Tüm değişiklikler dikkatle yapılmalıdır.
+# Hassas bilgiler (şifreler, API keys) environment variable'lardan okunmalıdır!
+# ============================================================================
+
+# Genel Ayarlar
+app_name: "PPE Detection System"
+app_version: "1.0.0"
+environment: "production"
+debug: false  # ASLA TRUE YAPMAY
+
+# ============================================================================
+# Database Configuration
+# ============================================================================
+database:
+  # PostgreSQL (HA cluster)
+  type: "postgresql"
+  host: "prod-db-primary.internal"
+  port: 5432
+  username: "ppe_prod"
+  # ÖNEMLİ: Şifre environment variable'dan okunmalı
+  # export DATABASE__PASSWORD="your-secure-password"
+  database: "ppe_production"
+
+  # Pool ayarları (production optimized)
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+
+  # SQL echo (KAPALI)
+  echo: false
+
+# ============================================================================
+# Camera Configuration
+# ============================================================================
+cameras:
+  # Global kamera ayarları
+  default_fps: 10
+  default_resolution: [1920, 1080]
+  frame_skip: 1
+
+  # PRODUCTION KAMERALAR
+  # Not: Gerçek kamera URL'leri environment variable veya ayrı dosyadan okunmalı
+  # Güvenlik nedeniyle bu dosyada hardcode edilmemelidir!
+  cameras:
+    # Ana Giriş Kamerası
+    - camera_id: "prod_cam_main_entrance"
+      name: "Main Entrance Camera"
+      # rtsp_url: ${CAMERA_MAIN_ENTRANCE_URL}
+      rtsp_url: "rtsp://10.0.1.10:554/stream1"
+      location: "Main Entrance"
+      zone: "Zone A - Entry Point"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+    # Çalışma Alanı Kamerası 1
+    - camera_id: "prod_cam_work_area_01"
+      name: "Work Area Camera 1"
+      rtsp_url: "rtsp://10.0.1.11:554/stream1"
+      location: "Work Area - North"
+      zone: "Zone B - Work Area North"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+    # Çalışma Alanı Kamerası 2
+    - camera_id: "prod_cam_work_area_02"
+      name: "Work Area Camera 2"
+      rtsp_url: "rtsp://10.0.1.12:554/stream1"
+      location: "Work Area - South"
+      zone: "Zone C - Work Area South"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+    # Yüksekte Çalışma Alanı
+    - camera_id: "prod_cam_elevated_area"
+      name: "Elevated Work Area Camera"
+      rtsp_url: "rtsp://10.0.1.13:554/stream1"
+      location: "Elevated Work Area"
+      zone: "Zone D - High Risk Area"
+      fps: 10
+      resolution: [1920, 1080]
+      enabled: true
+      reconnect_delay: 5
+      max_reconnect_attempts: 10
+      buffer_size: 100
+
+# ============================================================================
+# Model Configuration
+# ============================================================================
+model:
+  # Production model (en iyi accuracy)
+  model_path: "models/ppe_yolov11l_prod_v1.0.pt"
+  model_type: "yolov11"
+  model_size: "l"  # Large model (best accuracy)
+
+  # Inference ayarları (optimize edilmiş)
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+
+  # Device (GPU required)
+  device: "cuda"
+  device_id: 0
+  batch_size: 1
+  half_precision: true  # FP16 for performance
+
+  # PPE sınıfları
+  ppe_classes:
+    hardhat: 0
+    mask: 1
+    safety_vest: 2
+    person: 3
+    no_hardhat: 4
+    no_mask: 5
+    no_safety_vest: 6
+
+  # Zorunlu PPE (şantiye kurallarına göre)
+  required_ppe:
+    - "hardhat"
+    - "safety_vest"
+    # - "mask"  # COVID durumuna göre aktifleştir
+
+  # Model warmup
+  warmup_iterations: 10
+
+# ============================================================================
+# Alert Configuration
+# ============================================================================
+alerts:
+  # Alert sistemi (PRODUCTION - TÜM KANALLAR AKTİF)
+  enable_alerts: true
+  min_alert_interval: 60  # 1 dakika (spam önleme)
+
+  # Alert kanalları
+  enable_email: true
+  enable_sms: true  # Kritik durumlarda
+  enable_webhook: true  # Slack/Teams entegrasyonu
+  enable_database: true  # Tüm kayıtlar
+
+  # Email ayarları
+  email_recipients:
+    - "safety-team@company.com"
+    - "site-supervisor@company.com"
+    - "security@company.com"
+  email_cc:
+    - "management@company.com"
+
+  # SMS ayarları (acil durumlar için)
+  sms_recipients:
+    - "+905551234567"  # Güvenlik Şefi
+    - "+905559876543"  # Şantiye Müdürü
+
+  # Webhook ayarları
+  webhook_urls:
+    - "https://hooks.slack.com/services/PROD/WEBHOOK/URL"
+    - "https://api.company.com/ppe-alerts"
+  webhook_timeout: 10
+
+  # Kritik ihlaller (ANINDA BİLDİRİM)
+  critical_violations:
+    - "no_hardhat"
+    - "no_safety_vest"
+
+  # Alert birleştirme
+  aggregate_alerts: true
+  aggregation_window: 300  # 5 dakika
+
+  # Sessiz saatler (gece vardiyası yoksa)
+  quiet_hours_enabled: true
+  quiet_hours_start: "22:00"
+  quiet_hours_end: "06:00"
+
+# ============================================================================
+# API Configuration
+# ============================================================================
+api:
+  # Email servisi (Corporate SMTP)
+  smtp_host: "smtp.company.com"
+  smtp_port: 587
+  # smtp_username: ${SMTP_USERNAME}
+  # smtp_password: ${SMTP_PASSWORD}
+  smtp_use_tls: true
+  email_from: "ppe-detection@company.com"
+
+  # SMS servisi (Twilio Production)
+  # twilio_account_sid: ${TWILIO_ACCOUNT_SID}
+  # twilio_auth_token: ${TWILIO_AUTH_TOKEN}
+  # twilio_phone_number: ${TWILIO_PHONE_NUMBER}
+
+  # Cloud storage (Production S3)
+  s3_enabled: true
+  s3_bucket: "ppe-detection-production"
+  s3_region: "eu-west-1"  # En yakın region
+  # s3_access_key: ${AWS_ACCESS_KEY_ID}
+  # s3_secret_key: ${AWS_SECRET_ACCESS_KEY}
+
+  # Webhook authentication (GÜVENLİK ÖNEMLİ!)
+  webhook_auth_enabled: true
+  # webhook_auth_token: ${WEBHOOK_AUTH_TOKEN}
+
+  # Rate limiting (DDoS koruması)
+  rate_limit_enabled: true
+  rate_limit_per_minute: 60
+
+# ============================================================================
+# Monitoring Configuration
+# ============================================================================
+monitoring:
+  # Logging ayarları (Production grade)
+  log_level: "INFO"  # WARNING için değiştirilebilir
+  log_file: "/var/log/ppe_detection/production.log"
+  log_max_size: 52428800  # 50 MB
+  log_backup_count: 10
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - [%(process)d] - %(message)s"
+
+  # Metrics (Prometheus)
+  enable_metrics: true
+  metrics_port: 9090
+
+  # Performance tracking
+  track_inference_time: true
+  track_fps: true
+  track_memory: true
+
+  # Health checks (Load balancer için)
+  health_check_enabled: true
+  health_check_port: 8080
+  health_check_interval: 30
+
+  # System alerts (OPS team)
+  alert_on_camera_failure: true
+  alert_on_high_memory: true
+  memory_threshold_percent: 85  # Erkenden uyar
+
+  # Snapshots (uzun süre sakla)
+  save_violation_snapshots: true
+  snapshot_path: "/data/ppe_snapshots"
+  snapshot_retention_days: 90  # 3 ay
+
+# ============================================================================
+# Feature Flags
+# ============================================================================
+feature_flags:
+  enable_person_tracking: true
+  enable_zone_detection: true
+  enable_heat_map: false  # CPU yoğun, gerekirse aç
+  enable_analytics_dashboard: true
+  enable_auto_calibration: false  # Beta
+  enable_night_mode: true
+
+# ============================================================================
+# İş Mantığı
+# ============================================================================
+violation_grace_period: 5  # 5 saniye bekleme
+
+# Person tracking (kişileri takip et)
+person_tracking_enabled: true
+person_tracking_max_age: 30  # 30 frame
+
+# Zone management (bölge yönetimi)
+zones_enabled: true
+
+# ============================================================================
+# Production Specific Settings
+# ============================================================================
+
+# High Availability
+ha:
+  enabled: true
+  heartbeat_interval: 10
+  failover_timeout: 30
+
+# Backup & Recovery
+backup:
+  enabled: true
+  interval_hours: 4
+  retention_days: 30
+  backup_path: "/backup/ppe_detection"
+  incremental: true
+
+# Security
+security:
+  # SSL/TLS (ZORUNLU)
+  ssl_enabled: true
+  ssl_verify: true
+  ssl_cert_path: "/etc/ssl/certs/ppe_detection.crt"
+  ssl_key_path: "/etc/ssl/private/ppe_detection.key"
+
+  # Authentication (ZORUNLU)
+  auth_enabled: true
+  jwt_secret_key: "USE_ENVIRONMENT_VARIABLE"
+  jwt_expiry_hours: 8
+  session_timeout_minutes: 60
+
+  # IP Whitelisting
+  ip_whitelist_enabled: true
+  allowed_ips:
+    - "10.0.0.0/8"  # Internal network
+    - "192.168.1.0/24"  # VPN
+
+  # Encryption at rest
+  encrypt_snapshots: true
+  encrypt_database: true
+
+# Performance
+performance:
+  # Worker processes
+  num_workers: 4
+  worker_threads: 2
+
+  # Queue settings
+  max_queue_size: 1000
+  queue_timeout: 30
+
+  # Caching
+  enable_cache: true
+  cache_ttl: 300  # 5 dakika
+
+# Compliance & Audit
+compliance:
+  # Audit logging
+  enable_audit_log: true
+  audit_log_path: "/var/log/ppe_detection/audit.log"
+
+  # Data retention (GDPR/KVKK)
+  data_retention_days: 90
+  anonymize_after_days: 365
+
+  # Privacy
+  blur_faces: false  # İhtiyaca göre aktifleştir
+  gdpr_compliant: true
+
+# Alerting thresholds
+thresholds:
+  # Kamera başarısız olma oranı
+  camera_failure_rate_percent: 20
+
+  # Bellek kullanımı
+  memory_warning_percent: 80
+  memory_critical_percent: 90
+
+  # CPU kullanımı
+  cpu_warning_percent: 80
+  cpu_critical_percent: 95
+
+  # Disk kullanımı
+  disk_warning_percent: 80
+  disk_critical_percent: 90
+
+# Notifications
+notifications:
+  # On-call rotation
+  on_call_phone: "+905551234567"
+
+  # Escalation policy
+  escalation:
+    level_1_minutes: 5
+    level_2_minutes: 15
+    level_3_minutes: 30
+
+# Maintenance windows
+maintenance:
+  # Planlı bakım saatleri (uyarı gönderme)
+  enabled: true
+  windows:
+    - day: "Sunday"
+      start: "02:00"
+      end: "04:00"
+
+# ============================================================================
+# IMPORTANT PRODUCTION NOTES
+# ============================================================================
+#
+# 1. ÖNEMLİ: Tüm hassas bilgiler environment variable'lardan okunmalı!
+#    - Database passwords
+#    - API keys
+#    - Secret tokens
+#    - RTSP URLs (kullanıcı adı/şifre içerenler)
+#
+# 2. Bu dosya git'e commit EDİLMELİ (hassas bilgi içermemeli)
+#    .env dosyası git'e commit EDİLMEMELİ
+#
+# 3. Production deployment checklist:
+#    - SSL certificates kuruldu mu?
+#    - Database backup çalışıyor mu?
+#    - Monitoring alarmları kuruldu mu?
+#    - Log rotation yapılandırıldı mı?
+#    - Firewall kuralları uygun mu?
+#    - Health check endpoint erişilebilir mi?
+#
+# 4. Değişiklik yaparken:
+#    - Önce staging'de test et
+#    - Change management prosedürünü takip et
+#    - Rollback planı hazırla
+#    - Monitoring'i yakından takip et
+#
+# ============================================================================

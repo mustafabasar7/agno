@@ -1,0 +1,54 @@
+# Prometheus configuration for PPE Detection System
+
+global:
+  scrape_interval: 15s  # How frequently to scrape targets
+  evaluation_interval: 15s  # How frequently to evaluate rules
+  external_labels:
+    monitor: 'ppe-detection'
+    environment: 'production'
+
+# Alertmanager configuration (if using)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - 'alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # PPE Detection Application metrics
+  - job_name: 'ppe-detection'
+    static_configs:
+      - targets: ['host.docker.internal:9090']
+        labels:
+          service: 'ppe-detection'
+          instance: 'main'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (system metrics) - if running
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Additional camera endpoints (if exposing metrics)
+  - job_name: 'cameras'
+    static_configs:
+      - targets:
+          - 'camera-01:9090'
+          - 'camera-02:9090'
+          - 'camera-03:9090'
+        labels:
+          component: 'camera'
+    scrape_interval: 30s
+    # Only scrape if cameras are configured to expose metrics
+    metrics_path: '/metrics'
+    scheme: 'http'

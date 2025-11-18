@@ -1,0 +1,12 @@
+# RTSP Camera Stream Handler Requirements
+
+# Core dependencies
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Optional: Enhanced RTSP support
+# opencv-contrib-python>=4.8.0
+
+# For production deployment
+# python-dotenv>=1.0.0  # For environment variable management
+# pyyaml>=6.0  # For YAML configuration files

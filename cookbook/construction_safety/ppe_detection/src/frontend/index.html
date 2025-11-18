@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnşaat Güvenliği - KKD Tespit Sistemi</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>🏗️ KKD Tespit ve İzleme Sistemi</h1>
+                <div class="header-status">
+                    <span class="status-indicator" id="systemStatus">
+                        <span class="status-dot"></span>
+                        Sistem Aktif
+                    </span>
+                    <span class="last-update" id="lastUpdate">Son güncelleme: --</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+
+        <!-- Statistics Cards -->
+        <section class="stats-section">
+            <div class="stat-card stat-card-violations">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalViolations">0</div>
+                    <div class="stat-label">Toplam İhlal</div>
+                    <div class="stat-change" id="violationsChange">+0 bugün</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-compliance">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="complianceRate">0%</div>
+                    <div class="stat-label">Uyum Oranı</div>
+                    <div class="stat-change" id="complianceChange">Son 24 saat</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-cameras">
+                <div class="stat-icon">📹</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activeCameras">0/0</div>
+                    <div class="stat-label">Aktif Kameralar</div>
+                    <div class="stat-change" id="camerasChange">Tümü çalışıyor</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-workers">
+                <div class="stat-icon">👷</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="detectedWorkers">0</div>
+                    <div class="stat-label">Tespit Edilen İşçi</div>
+                    <div class="stat-change" id="workersChange">Aktif şantiyede</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+
+            <!-- Left Column -->
+            <div class="left-column">
+
+                <!-- Live Camera Feeds -->
+                <section class="panel camera-grid-panel">
+                    <div class="panel-header">
+                        <h2>📹 Canlı Kamera Görüntüleri</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-sm" id="refreshCameras">🔄 Yenile</button>
+                            <button class="btn btn-sm" id="fullscreenGrid">⛶ Tam Ekran</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="camera-grid" id="cameraGrid">
+                            <!-- Camera feeds will be dynamically added here -->
+                            <div class="camera-placeholder">
+                                <p>Kamera yükleniyor...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Violation History -->
+                <section class="panel violation-history-panel">
+                    <div class="panel-header">
+                        <h2>📋 İhlal Geçmişi</h2>
+                        <div class="panel-actions">
+                            <input type="date" id="filterStartDate" class="date-input">
+                            <input type="date" id="filterEndDate" class="date-input">
+                            <select id="filterCamera" class="filter-select">
+                                <option value="">Tüm Kameralar</option>
+                            </select>
+                            <select id="filterType" class="filter-select">
+                                <option value="">Tüm İhlal Türleri</option>
+                                <option value="helmet">Baret Eksikliği</option>
+                                <option value="vest">Yelek Eksikliği</option>
+                                <option value="gloves">Eldiven Eksikliği</option>
+                                <option value="boots">Bot Eksikliği</option>
+                                <option value="glasses">Gözlük Eksikliği</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" id="exportCsv">📥 CSV İndir</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-container">
+                            <table class="violations-table" id="violationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tarih/Saat</th>
+                                        <th>Kamera</th>
+                                        <th>İhlal Türü</th>
+                                        <th>Güven Skoru</th>
+                                        <th>Durum</th>
+                                        <th>Önizleme</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="violationsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="no-data">Veri yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="pagination">
+                            <button class="btn btn-sm" id="prevPage">← Önceki</button>
+                            <span id="pageInfo">Sayfa 1 / 1</span>
+                            <button class="btn btn-sm" id="nextPage">Sonraki →</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+
+                <!-- Real-time Alerts -->
+                <section class="panel alerts-panel">
+                    <div class="panel-header">
+                        <h2>🚨 Canlı İhlal Bildirimleri</h2>
+                        <button class="btn btn-sm" id="clearAlerts">🗑️ Temizle</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="alerts-container" id="alertsContainer">
+                            <div class="alert-placeholder">
+                                <p>Henüz ihlal bildirimi yok</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Statistics Charts -->
+                <section class="panel charts-panel">
+                    <div class="panel-header">
+                        <h2>📊 İstatistikler</h2>
+                        <select id="chartPeriod" class="filter-select">
+                            <option value="today">Bugün</option>
+                            <option value="week">Bu Hafta</option>
+                            <option value="month">Bu Ay</option>
+                        </select>
+                    </div>
+                    <div class="panel-body">
+                        <div class="chart-container">
+                            <canvas id="violationsChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="violationTypesChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Camera Management -->
+                <section class="panel camera-management-panel">
+                    <div class="panel-header">
+                        <h2>⚙️ Kamera Yönetimi</h2>
+                        <button class="btn btn-sm btn-primary" id="addCamera">+ Kamera Ekle</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="camera-list" id="cameraList">
+                            <!-- Camera management items will be added here -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal for Image Preview -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <img id="modalImage" src="" alt="İhlal Görüntüsü">
+            <div class="modal-info" id="modalInfo"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Add Camera -->
+    <div class="modal" id="addCameraModal">
+        <div class="modal-content modal-form">
+            <span class="modal-close" id="addCameraModalClose">&times;</span>
+            <h2>Yeni Kamera Ekle</h2>
+            <form id="addCameraForm">
+                <div class="form-group">
+                    <label for="cameraName">Kamera Adı</label>
+                    <input type="text" id="cameraName" required placeholder="örn: Giriş Kapısı">
+                </div>
+                <div class="form-group">
+                    <label for="cameraUrl">RTSP/HTTP URL</label>
+                    <input type="text" id="cameraUrl" required placeholder="rtsp://192.168.1.100:554/stream">
+                </div>
+                <div class="form-group">
+                    <label for="cameraLocation">Lokasyon</label>
+                    <input type="text" id="cameraLocation" placeholder="örn: A Blok Giriş">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" id="cancelAddCamera">İptal</button>
+                    <button type="submit" class="btn btn-primary">Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="static/js/websocket.js"></script>
+    <script src="static/js/charts.js"></script>
+    <script src="static/js/main.js"></script>
+</body>
+</html>

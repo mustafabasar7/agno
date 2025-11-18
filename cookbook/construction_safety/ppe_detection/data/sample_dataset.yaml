@@ -1,0 +1,78 @@
+# PPE Detection Dataset Configuration
+# This is a sample YOLO dataset configuration for fine-tuning the PPE detector
+
+# Dataset root path (absolute or relative to this file)
+path: /home/user/agno/cookbook/construction_safety/ppe_detection/data/ppe_dataset
+
+# Train and validation image directories (relative to 'path')
+train: images/train
+val: images/val
+test: images/test  # Optional
+
+# Number of classes
+nc: 3
+
+# Class names (order matters - index corresponds to class ID)
+names:
+  0: helmet    # Safety helmet (baret)
+  1: vest      # Safety vest (yolek)
+  2: person    # Person
+
+# Optional: Dataset metadata
+# download: https://example.com/ppe_dataset.zip  # Dataset download URL
+# info: PPE detection dataset for construction safety
+
+# Training hyperparameters (optional - can override during training)
+# epochs: 100
+# batch: 16
+# imgsz: 640
+# lr0: 0.01
+
+# Data augmentation settings (optional)
+# hsv_h: 0.015  # Image HSV-Hue augmentation
+# hsv_s: 0.7    # Image HSV-Saturation augmentation
+# hsv_v: 0.4    # Image HSV-Value augmentation
+# degrees: 0.0  # Image rotation (+/- deg)
+# translate: 0.1  # Image translation (+/- fraction)
+# scale: 0.5    # Image scale (+/- gain)
+# shear: 0.0    # Image shear (+/- deg)
+# perspective: 0.0  # Image perspective (+/- fraction)
+# flipud: 0.0   # Image flip up-down (probability)
+# fliplr: 0.5   # Image flip left-right (probability)
+# mosaic: 1.0   # Image mosaic (probability)
+# mixup: 0.0    # Image mixup (probability)
+
+# Dataset structure should be:
+#
+# ppe_dataset/
+# ├── dataset.yaml (this file)
+# ├── images/
+# │   ├── train/
+# │   │   ├── image1.jpg
+# │   │   ├── image2.jpg
+# │   │   └── ...
+# │   ├── val/
+# │   │   ├── image1.jpg
+# │   │   └── ...
+# │   └── test/ (optional)
+# │       └── ...
+# └── labels/
+#     ├── train/
+#     │   ├── image1.txt
+#     │   ├── image2.txt
+#     │   └── ...
+#     ├── val/
+#     │   ├── image1.txt
+#     │   └── ...
+#     └── test/ (optional)
+#         └── ...
+#
+# Label format (YOLO format):
+# Each .txt file contains one row per object:
+# <class_id> <x_center> <y_center> <width> <height>
+# All values are normalized to [0, 1] relative to image dimensions
+#
+# Example label file (image1.txt):
+# 2 0.5 0.5 0.3 0.8     # person at center
+# 0 0.5 0.3 0.15 0.15   # helmet on person's head
+# 1 0.5 0.6 0.2 0.3     # vest on person's torso

@@ -1,0 +1,45 @@
+# Alert System Requirements
+# Core dependencies for the PPE Detection Alert and Notification System
+
+# HTTP requests for webhooks, Telegram, SMS
+requests>=2.31.0
+
+# Email support (built-in smtplib is used, but these can enhance functionality)
+# email-validator>=2.0.0  # Optional: for email validation
+
+# WebSocket support (choose one based on your needs)
+# websockets>=11.0  # For standalone WebSocket server
+# python-socketio>=5.9.0  # For Socket.IO support
+# aiohttp>=3.8.0  # For async HTTP and WebSocket
+
+# Async support
+asyncio  # Built-in, but included for clarity
+
+# Twilio SDK (optional, can use direct API calls as implemented)
+# twilio>=8.0.0
+
+# Telegram Bot API (optional, can use direct API calls as implemented)
+# python-telegram-bot>=20.0
+
+# Data validation
+# pydantic>=2.0.0  # Optional: for enhanced data validation
+
+# Logging enhancements
+# python-json-logger>=2.0.0  # Optional: for JSON logging
+
+# Configuration management
+# python-dotenv>=1.0.0  # For loading environment variables
+
+# Testing
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# pytest-mock>=3.11.0
+
+# Code quality
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.0.0
+
+# Note: Most functionality uses built-in libraries and direct API calls
+# to minimize dependencies. Optional packages listed above can enhance
+# functionality but are not required for basic operation.

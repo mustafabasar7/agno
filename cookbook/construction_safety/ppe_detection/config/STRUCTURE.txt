@@ -1,0 +1,175 @@
+PPE Detection - Configuration Management Structure
+==================================================
+
+/home/user/agno/cookbook/construction_safety/ppe_detection/
+│
+├── .env.example (7.8K)                     # Örnek environment variables
+│   └── Tüm yapılandırma değişkenleri
+│       - Database credentials
+│       - Camera RTSP URLs
+│       - Model paths
+│       - API keys (SMTP, Twilio, S3)
+│       - Alert settings
+│       - Monitoring settings
+│
+└── config/                                  # Ana yapılandırma dizini
+    │
+    ├── __init__.py (2.0K)                  # Package initialization
+    │   └── Export edilen modüller ve fonksiyonlar
+    │
+    ├── settings.py (21K)                   # Ana yapılandırma sınıfları
+    │   ├── DatabaseConfig                  # PostgreSQL/SQLite
+    │   ├── CameraConfig                    # RTSP kameralar
+    │   ├── CamerasConfig                   # Çoklu kamera yönetimi
+    │   ├── ModelConfig                     # YOLOv8/YOLOv11
+    │   ├── AlertConfig                     # Email/SMS/Webhook
+    │   ├── APIConfig                       # SMTP, Twilio, S3
+    │   ├── MonitoringConfig                # Logging, metrics
+    │   └── Settings                        # Ana config sınıfı
+    │
+    ├── config_loader.py (16K)              # Çoklu kaynak yapılandırma yükleme
+    │   ├── ConfigLoader                    # Ana loader
+    │   ├── CLIConfigLoader                 # CLI argument parser
+    │   └── Öncelik: CLI > Env vars > Config files > Defaults
+    │
+    ├── config_validator.py (19K)           # Yapılandırma doğrulama
+    │   ├── ConfigValidator                 # Ana validator
+    │   ├── validate_environment()          # Ortam kontrolü
+    │   ├── validate_database()             # DB bağlantı kontrolü
+    │   ├── validate_model()                # Model dosya kontrolü
+    │   ├── validate_cameras()              # RTSP URL kontrolü
+    │   ├── validate_security()             # Güvenlik kontrolleri
+    │   └── validate_network()              # Network bağlantı testleri
+    │
+    ├── config_test.py (9.8K)               # Test suite
+    │   ├── 11 kapsamlı test
+    │   ├── test_basic_loading()
+    │   ├── test_validation()
+    │   ├── test_config_loader()
+    │   ├── test_database_config()
+    │   ├── test_model_config()
+    │   ├── test_camera_config()
+    │   └── ... ve diğerleri
+    │
+    ├── generate_schema.py (6.4K)           # JSON Schema generator
+    │   ├── generate_json_schema()
+    │   ├── generate_markdown_doc()
+    │   ├── generate_env_template()
+    │   └── Çıktı: config/generated/
+    │
+    ├── cameras.yaml.example (7.2K)         # Kamera yapılandırma şablonu
+    │   ├── 6 örnek kamera
+    │   ├── RTSP URL formatları
+    │   ├── Test kameraları (video, webcam)
+    │   └── Best practices
+    │
+    ├── README.md (13K)                     # Kapsamlı dokümantasyon
+    │   ├── Hızlı başlangıç
+    │   ├── Yapılandırma bölümleri
+    │   ├── Güvenlik en iyi pratikleri
+    │   ├── CLI kullanımı
+    │   ├── Sorun giderme
+    │   └── SSS
+    │
+    ├── CONFIGURATION_SUMMARY.md (13K)      # Detaylı özet
+    │   ├── Tüm dosyaların açıklaması
+    │   ├── Hızlı başlangıç kılavuzu
+    │   ├── Güvenlik kontrol listesi
+    │   └── Özelleştirme örnekleri
+    │
+    └── environments/                        # Ortam-specific yapılandırmalar
+        │
+        ├── development.yaml (7.0K)         # Geliştirme ortamı
+        │   ├── SQLite database
+        │   ├── Düşük FPS (5)
+        │   ├── Debug logging
+        │   ├── Alert sistemleri kapalı
+        │   └── Test videoları
+        │
+        ├── staging.yaml (7.4K)             # Test ortamı
+        │   ├── PostgreSQL database
+        │   ├── Production benzeri ayarlar
+        │   ├── Tüm alert kanalları test
+        │   ├── S3 storage
+        │   └── GPU device
+        │
+        └── production.yaml (12K)           # Canlı ortam
+            ├── PostgreSQL HA cluster
+            ├── Yüksek çözünürlük
+            ├── Tüm alert kanalları aktif
+            ├── SSL/TLS zorunlu
+            ├── Backup & recovery
+            ├── Audit logging
+            └── GDPR compliance
+
+
+DOSYA İSTATİSTİKLERİ
+====================
+
+Python Modülleri:     5 dosya    (74.2 KB)
+YAML Configs:         3 dosya    (26.4 KB)
+Dokümantasyon:        3 dosya    (39.0 KB)
+Template/Example:     2 dosya    (15.0 KB)
+─────────────────────────────────────────
+TOPLAM:              13 dosya   (~155 KB)
+
+
+TEMEL ÖZELLİKLER
+================
+
+✅ Type-safe configuration (Pydantic Settings)
+✅ Çoklu kaynak desteği (CLI, env vars, YAML, defaults)
+✅ Öncelik yönetimi
+✅ Kapsamlı doğrulama (20+ kontrol)
+✅ Güvenlik kontrolleri
+✅ Ortam-specific configs (dev/staging/prod)
+✅ Hot reload desteği
+✅ Secret management (SecretStr)
+✅ Comprehensive testing (11 test)
+✅ JSON Schema generation
+✅ Full Turkish documentation
+✅ Production-ready
+
+
+KULLANIM ÖRNEKLERİ
+==================
+
+1. Development:
+   $ cp .env.example .env
+   $ python -m config.config_validator
+   $ python -m src.main --env development
+
+2. Staging:
+   $ python -m src.main --env staging --debug
+
+3. Production:
+   $ export ENVIRONMENT=production
+   $ python -m src.main --env production
+
+4. Custom:
+   $ python -m src.main \
+       --model-path models/custom.pt \
+       --confidence 0.6 \
+       --config custom.yaml
+
+
+GÜVENLİK
+========
+
+🔒 .env dosyası git'e commit edilmez
+🔒 Hassas bilgiler environment variables'da
+🔒 Production'da DEBUG=False
+🔒 Güçlü şifre kontrolleri
+🔒 File permission kontrolleri
+🔒 SSL/TLS desteği
+🔒 IP whitelisting
+🔒 Secret masking
+
+
+DESTEK
+======
+
+📖 Dokümantasyon: config/README.md
+🧪 Test: python -m config.config_test
+🔍 Doğrulama: python -m config.config_validator
+📋 Schema: python -m config.generate_schema
